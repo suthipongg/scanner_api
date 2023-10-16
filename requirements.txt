@@ -1,0 +1,10 @@
+Flask
+flask-cors
+numpy
+Pillow
+pyzbar
+requests
+tensorflow
+gunicorn
+onnxruntime
+# opencv-python==4.6.0.66

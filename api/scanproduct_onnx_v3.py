@@ -35,7 +35,7 @@ def getfullpath():
             LOG.info('method GET api scan product')    # LOG
             return jsonify({'message': 'method GET api scan product'})
     
-        local_fullPath = os.path.join(ConFig.PATH_DIRECTORY_LOCAL_UAT, os.path.join(*fullPath.split('/')[3:]))
+        # local_fullPath = os.path.join(ConFig.PATH_DIRECTORY_LOCAL_UAT, os.path.join(*fullPath.split('/')[3:]))
         local_fullPath = fullPath
         LOG.info(f'local_fullPath : {local_fullPath}' )    # LOG
         

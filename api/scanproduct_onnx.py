@@ -110,7 +110,7 @@ def getfullpath_backend():
         LOG.info(f'fullPath : {fullPath}' )    # LOG
 
         try:
-            local_fullPath = os.path.join(arg.PATH_DIRECTORY_LOCAL_BACKEND, os.path.join(*fullPath.split('/')[3:]))
+            local_fullPath = os.path.join(arg.PATH_DIRECTORY_LOCAL_UAT, os.path.join(*fullPath.split('/')[3:]))
             print(f'local_fullPath : {local_fullPath}')
             LOG.info(f'local_fullPath : {local_fullPath}' )    # LOG
             if os.path.exists(local_fullPath):

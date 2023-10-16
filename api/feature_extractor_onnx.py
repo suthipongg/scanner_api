@@ -1,52 +1,43 @@
 import onnxruntime as rt
-from tensorflow.keras.applications.efficientnet import preprocess_input
-from tensorflow.keras.preprocessing import image
-import numpy as np
-from PIL import Image
-from config import ConFig
+from onnxruntime import InferenceSession
+from transformers import ViTImageProcessor
 
-arg = ConFig()
+from pathlib import Path
+from PIL import Image
+import sys, logging
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
+from config import ConFig
+from script.tool import standardize_feature
 
 class FeatureExtractor:
     def __init__(self):
+        logging.basicConfig(level = logging.INFO)
         self.device = rt.get_device()
-        self.output_name = ["avg_pool"]
-        self.providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if self.device == 'GPU' else ['CPUExecutionProvider']
-        self.sess = rt.InferenceSession(arg.PATH_ONNX_EMBEDDED, providers=self.providers)
-        self.input_name = self.sess.get_inputs()[0].name
-        self.input_shape = self.sess.get_inputs()[0].shape[1:3]
+        self.model = InferenceSession(ConFig.FEATURE_EXTRACTOR_ONNX_MODEL_PATH, providers=ConFig.PROVIDER)
+        self.preprocessor = ViTImageProcessor.from_pretrained(ConFig.FEATURE_EXTRACTOR_MODEL_FOLDER)
         
-
-        dummy_img = Image.new('RGB', size=self.input_shape)
-        dummy_img = self.preprocess(dummy_img)
-        _ = self.sess.run(self.output_name, {self.input_name: dummy_img})
-        print('Initial Run Pass ...')
-
+        dummy_img = Image.new('RGB', size=ConFig.IMAGE_SHAPE)
+        dummy_img = self.preprocessor(dummy_img, return_tensors="np")
+        _ = self.model.run(output_names=[ConFig.LAYER_OUTPUT], input_feed=dict(dummy_img))
+        logging.info('Initial FeatureExtractor Run Pass ...')
       
     def preprocess(self, img):
-        img = img.resize(tuple(self.input_shape))
-        img = img.convert('RGB')
-        x = image.img_to_array(img)
-        x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x)   
-        return x  
-
+        img = img.convert("RGB")
+        return self.preprocessor(images=img, return_tensors="np")
 
     def extract(self, img):
-        x = self.preprocess(img)
-        feature = self.sess.run(self.output_name, {self.input_name: x})[0]
-        feature = feature / np.linalg.norm(feature)  # Normalize
-        return feature[0]
+        img = self.preprocess(img)
+        feature = self.model.run(output_names=[ConFig.LAYER_OUTPUT], input_feed=dict(img))[0][:, 0]
+        output = feature.flatten().reshape(1, -1)
+        output = standardize_feature(output)
+        return output
 
 
 if __name__ == '__main__':
-    from PIL import Image
-    from pathlib import Path
-
-
     fe = FeatureExtractor()
-
-    for img_path in sorted(Path("./static/img").glob("*.jpg")):
-        print(img_path)  # e.g., ./static/img/xxx.jpg
-        feature = fe.extract(img=Image.open(img_path))
-        print(feature)
+    img_path = Path("/home/music/Desktop/measure_model/data/image_net/n01491361_tiger_shark.JPEG")
+    feature = fe.extract(img=Image.open(img_path))

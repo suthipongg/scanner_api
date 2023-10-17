@@ -1,14 +1,14 @@
-from typing import Union
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 import uvicorn
-from datetime import datetime
-import os
-import logging
-from logging.handlers import TimedRotatingFileHandler
-from config import ConFig
 
-app = FastAPI()
+from datetime import datetime
+import os, logging
+from logging.handlers import TimedRotatingFileHandler
+from dotenv import load_dotenv
+load_dotenv()
+
+env = os.environ
+app = FastAPI(title=env["TITLE"])
 
 # datetime object containing current date and time
 now = datetime.now()
@@ -31,20 +31,24 @@ def configure_logging():
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
-if ConFig.LOGGING:
+if int(env["LOGGING"]):
     configure_logging()
 
-if ConFig.IS_ONNX_MODEL:
+if int(env["IS_ONNX_MODEL"]):
     from api.scanproduct_onnx_v3 import scanproduct_onnx_v3_api
     app.include_router(scanproduct_onnx_v3_api)
 
-@app.get('/')
+@app.get('/', tags=['Root'])
 def index():
-    return {'message': 'start'}
+    return {
+        'message': 'api start'
+        }
+
 
 if __name__ == "__main__":
     uvicorn.run("app:app", 
-                host=ConFig.HOST, 
-                port=ConFig.PORT, 
+                host=env["HOST"], 
+                port=int(env["PORT"]), 
                 log_level="info", 
-                reload=True)
+                reload=True
+                )

@@ -22,7 +22,7 @@ class ConFig(object):
     ALLOWED_EXTENSIONS = set(['.png', '.jpg', '.jpeg', '.gif'])
     
     HOST = "0.0.0.0"
-    PORT = "9085"
+    PORT = 9085
     LOGGING = False
     DEBUG = True
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024

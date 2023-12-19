@@ -1,13 +1,12 @@
 from pathlib import Path
 from PIL import Image
-import logging
+import logging, os
 import torch
-from utils.env_loader import env
-
+env = os.environ
 
 class FeatureExtractor:
     def __init__(self):
-        from models.func_models import pipeline_transformer, select_transformers_model
+        from controllers.utils import pipeline_transformer, select_transformers_model
         from transformers import ViTImageProcessor, ViTModel
 
         self.model, self.preprocessor = select_transformers_model(ViTModel, ViTImageProcessor, 
@@ -53,6 +52,21 @@ class FeatureExtractor_onnx:
         output = feature.flatten()
         return output.tolist()
     
+
+if int(env["IS_ONNX_MODEL"]):
+    logging.info('ONNX model is loading')
+    feature_extractor = FeatureExtractor_onnx()
+    logging.info('ONNX model is initialized')
+elif int(env["IS_ORIGINAL_MODEL"]) or (not int(env["IS_ORIGINAL_MODEL"]) and not int(env["IS_ONNX_MODEL"])):
+    logging.info('Original model is loading')
+    feature_extractor = FeatureExtractor()
+    logging.info('Original model is initialized')
+
+# Define a function to process uploaded images and extract features
+def extract_image(img):
+    img = Image.open(img).convert('RGB')
+    features = feature_extractor.extract(img)
+    return features
 
 if __name__ == '__main__':
     feature_extractor = FeatureExtractor()

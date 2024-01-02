@@ -6,6 +6,7 @@ env = os.environ
 
 class FeatureExtractor:
     def __init__(self):
+        logging.basicConfig(level = logging.INFO)
         from controllers.utils import pipeline_transformer, select_transformers_model
         from transformers import ViTImageProcessor, ViTModel
 
@@ -25,42 +26,36 @@ class FeatureExtractor:
 
 class FeatureExtractor_onnx:
     def __init__(self):
-        from onnxruntime import InferenceSession
-        from transformers import ViTImageProcessor
-        import onnxruntime as rt
-        
         logging.basicConfig(level = logging.INFO)
-        self.device = rt.get_device()
-        self.model = InferenceSession(env["FEATURE_EXTRACTOR_ONNX_MODEL_PATH"], providers=env["PROVIDER"].split(','))
-        self.preprocessor = ViTImageProcessor.from_pretrained(env["FEATURE_EXTRACTOR_MODEL_FOLDER"])
+        from controllers.utils import pipeline_transformer_onnx, select_transformers_onnx_model
+        from transformers import ViTImageProcessor
+        
+        self.model, self.preprocessor = select_transformers_onnx_model(path=env['FEATURE_EXTRACTOR_ONNX_MODEL_PATH'], processor=ViTImageProcessor, 
+                                                                       providers=env['PROVIDER'].split(','))
+        
+        self.extractor = pipeline_transformer_onnx(layer=env["FEATURE_EXTRACTOR_LAYER"], row=int(env["FEATURE_EXTRACTOR_ROW"]))
+        self.extractor.selct_model(self.model, self.preprocessor)
         
         dummy_img = Image.new('RGB', size=(224, 224))
-        dummy_img = self.preprocessor(dummy_img, return_tensors="np")
-        _ = self.execute_model(dummy_img)
+        _ = self.extract(dummy_img)
         logging.info('Initial FeatureExtractor Run Pass ...')
-      
-    def preprocess(self, img):
-        img = img.convert("RGB")
-        return self.preprocessor(images=img, return_tensors="np")
-
-    def execute_model(self, img):
-        return self.model.run(output_names=["last_hidden_state"], input_feed=dict(img))[0][:, 0]
     
     def extract(self, img):
-        img = self.preprocess(img)
-        feature = self.execute_model(img)
-        output = feature.flatten()
-        return output.tolist()
+        feature = self.extractor.extract(img)
+        return feature.tolist()
     
 
 if int(env["IS_ONNX_MODEL"]):
     logging.info('ONNX model is loading')
     feature_extractor = FeatureExtractor_onnx()
     logging.info('ONNX model is initialized')
-elif int(env["IS_ORIGINAL_MODEL"]) or (not int(env["IS_ORIGINAL_MODEL"]) and not int(env["IS_ONNX_MODEL"])):
+elif int(env["IS_ORIGINAL_MODEL"]):
     logging.info('Original model is loading')
     feature_extractor = FeatureExtractor()
     logging.info('Original model is initialized')
+else:
+    logging.info('No model is loaded')
+    feature_extractor = None
 
 # Define a function to process uploaded images and extract features
 def extract_image(img):

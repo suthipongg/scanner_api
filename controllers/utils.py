@@ -114,7 +114,7 @@ class pipeline_transformer_onnx:
         self.processor = processor
     
     def process_model(self, img, return_tensors="np"):
-        inputs = self.processor(images=img, return_tensors="np")
+        inputs = self.processor(images=img, return_tensors=return_tensors)
         outputs = self.model.run(output_names=[self.layer], input_feed=dict(inputs))[0]
         return outputs
         
@@ -125,8 +125,9 @@ class pipeline_transformer_onnx:
             outputs = outputs[0]
         else:
             outputs = outputs[:, self.row]
+        outputs = outputs.flatten()
         outputs = standardize_feature(outputs)
-        return outputs
+        return to_unit_len(outputs)
     
     def report_test(self):
         img = Image.new('RGB', (224, 224))

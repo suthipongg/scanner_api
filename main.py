@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 
-import os
+import os, datetime
 from dotenv import load_dotenv
 load_dotenv('settings/.env')
 env = os.environ
@@ -9,7 +9,14 @@ env = os.environ
 from utils.logging import configure_logging
 from routes import extract_routes
 
-app = FastAPI(title=env["TITLE"])
+
+app = FastAPI(
+    title="PROJECT COSMEMET:  EXTRACTOR API (2023)", 
+    description=f"TNT Media and Network Co., Ltd. \n Started at {datetime.datetime.now().strftime('%c')}",
+    docs_url="/",
+    version="1.0.0",
+    # swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"}
+    )
 
 if int(env["LOGGING"]):
     configure_logging()

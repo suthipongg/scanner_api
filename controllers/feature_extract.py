@@ -4,38 +4,47 @@ import logging, os
 import torch
 env = os.environ
 
+# Original model
 class FeatureExtractor:
     def __init__(self):
         logging.basicConfig(level = logging.INFO)
+        # import transformers model and preprocessor
         from controllers.utils import pipeline_transformer, select_transformers_model
         from transformers import ViTImageProcessor, ViTModel
 
+        # load model and preprocessor
         self.model, self.preprocessor = select_transformers_model(ViTModel, ViTImageProcessor, 
                                               pretrain=env['PRETRAIN_MODEL_PATH'])
         if int(env['LOAD_STATE_DICT']):
             self.model.load_state_dict(torch.load(env['MODELS_STATE_DICT_PATH'])['model_state_dict'])
-            
+        # create extractor pipeline
         self.extractor = pipeline_transformer(layer=env["FEATURE_EXTRACTOR_LAYER"], row=int(env["FEATURE_EXTRACTOR_ROW"]),
                                             device=env["DEVICE"])
         self.extractor.selct_model(self.model, self.preprocessor)
+        # test dummy image
+        dummy_img = Image.new('RGB', size=(224, 224))
+        _ = self.extract(dummy_img)
+        logging.info('Initial FeatureExtractor Run Pass ...')
         
     def extract(self, img):
         feature = self.extractor.extract(img)
         return feature.tolist()
 
-
+# ONNX model
 class FeatureExtractor_onnx:
     def __init__(self):
         logging.basicConfig(level = logging.INFO)
+        # import onnx model and preprocessor
         from controllers.utils import pipeline_transformer_onnx, select_transformers_onnx_model
         from transformers import ViTImageProcessor
         
-        self.model, self.preprocessor = select_transformers_onnx_model(path=env['FEATURE_EXTRACTOR_ONNX_MODEL_PATH'], processor=ViTImageProcessor, 
+        # load model and preprocessor
+        self.model, self.preprocessor = select_transformers_onnx_model(path=env['PRETRAIN_MODEL_PATH'], processor=ViTImageProcessor, 
                                                                        providers=env['PROVIDER'].split(','))
-        
+        # create extractor pipeline
         self.extractor = pipeline_transformer_onnx(layer=env["FEATURE_EXTRACTOR_LAYER"], row=int(env["FEATURE_EXTRACTOR_ROW"]))
         self.extractor.selct_model(self.model, self.preprocessor)
-        
+        # test dummy image
         dummy_img = Image.new('RGB', size=(224, 224))
         _ = self.extract(dummy_img)
         logging.info('Initial FeatureExtractor Run Pass ...')
@@ -44,7 +53,7 @@ class FeatureExtractor_onnx:
         feature = self.extractor.extract(img)
         return feature.tolist()
     
-
+# Choose model onnx or original
 if int(env["IS_ONNX_MODEL"]):
     logging.info('ONNX model is loading')
     feature_extractor = FeatureExtractor_onnx()
@@ -57,7 +66,7 @@ else:
     logging.info('No model is loaded')
     feature_extractor = None
 
-# Define a function to process uploaded images and extract features
+# function
 def extract_image(img):
     img = Image.open(img).convert('RGB')
     features = feature_extractor.extract(img)

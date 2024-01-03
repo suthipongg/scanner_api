@@ -1,53 +1,13 @@
-import time
 from pathlib import Path
-
-from PIL import Image
 import numpy as np
 
+# convert to unit vector
 def to_unit_len(vector):
     return vector / np.linalg.norm(vector)
 
+# standardize feature
 def standardize_feature(arr):
     return (arr-arr.mean())/arr.std()
-
-def select_timm_model(model, num_classes=0, pretrain=True):
-    from timm.models import create_model
-    import timm
-    
-    model = create_model(model, num_classes=num_classes, pretrained=pretrain)
-    data_config = timm.data.resolve_model_data_config(model)
-    processor = timm.data.create_transform(**data_config, is_training=False)
-    return model, processor
-
-# pipeline for timm library
-class pipeline_timm:
-    def __init__(self, device='cuda:0'):
-        self.device = device
-    
-    def selct_model(self, model, processor):
-        self.model = model
-        self.processor = processor
-        self.model.eval().to(self.device)
-    
-    def process_model(self, img):
-        inputs = self.processor(img).to(self.device).unsqueeze(0)
-        outputs = self.model(inputs)
-        return outputs
-        
-    def extract(self, img):
-        ### return specific layer
-        outputs = self.process_model(img)
-        outputs.flatten().unsqueeze(0)
-        outputs = standardize_feature(outputs).to('cpu').detach().numpy()
-        return to_unit_len(outputs)
-    
-    def report_test(self):
-        img = Image.new('RGB', (224, 224))
-        start_time_torch = time.time()
-        outputs = self.process_model(img)
-        delta_time_torch = time.time() - start_time_torch
-        print("runtime :", delta_time_torch*1000, "ms")
-        print(f"Output shape at layer : {outputs.shape}")
 
 
 def select_transformers_model(model, processor, pretrain="google/vit-base-patch16-224-in21k"):
@@ -84,16 +44,6 @@ class pipeline_transformer:
         if output_type=='np':
             outputs = outputs.to('cpu').detach().numpy()
         return to_unit_len(outputs.flatten())
-    
-    def report_test(self):
-        img = Image.new('RGB', (224, 224))
-        start_time_torch = time.time()
-        outputs = self.process_model(img)
-        delta_time_torch = time.time() - start_time_torch
-        print("runtime :", delta_time_torch*1000, "ms")
-        print(f"outputs layers : {outputs.keys()}")
-        print(f"shape last_hidden_state : {outputs.last_hidden_state.shape}")
-        print(f"shape pooler_output : {outputs.pooler_output.shape}")
 
 
 def select_transformers_onnx_model(path="google/vit-base-patch16-224-in21k", processor=None, providers=['CPUExecutionProvider']):
@@ -128,11 +78,3 @@ class pipeline_transformer_onnx:
         outputs = outputs.flatten()
         outputs = standardize_feature(outputs)
         return to_unit_len(outputs)
-    
-    def report_test(self):
-        img = Image.new('RGB', (224, 224))
-        start_time_torch = time.time()
-        outputs = self.process_model(img)
-        delta_time_torch = time.time() - start_time_torch
-        print("runtime :", delta_time_torch*1000, "ms")
-        print(f"shape : {outputs.shape}")

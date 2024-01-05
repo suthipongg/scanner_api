@@ -3,10 +3,10 @@ import uvicorn
 
 import os, datetime
 from dotenv import load_dotenv
-load_dotenv('settings/.env')
+load_dotenv('configs/.env')
 env = os.environ
 
-from utils.logging import configure_logging
+from configs.logging import configure_logging
 from routes import extract_routes
 
 

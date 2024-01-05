@@ -1,12 +1,21 @@
 from models.fullpath_model import FullPathModel
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, status
+from configs.security import UnauthorizedMessage, get_token
 from controllers.feature_extract import extract_image
 import sys, os
 
 router = APIRouter()
 
-@router.post("/cosmenet/scanproduct/v2/onnx", tags=['scan_product'])
-async def extract_feature(body:FullPathModel):
+@router.post(
+    "/cosmenet/scanproduct/v2/onnx", 
+    tags=['scan_product'],
+    responses={status.HTTP_401_UNAUTHORIZED: dict(model=UnauthorizedMessage)},
+    status_code=status.HTTP_200_OK
+    )
+async def extract_feature(
+    body:FullPathModel,
+    token_auth: str = Depends(get_token)
+    ):
     try:
         features = extract_image(body.fullPath)
         return {

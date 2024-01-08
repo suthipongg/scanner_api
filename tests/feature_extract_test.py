@@ -16,6 +16,7 @@ def test_feature_extract_success():
 def test_feature_extract_unauthorized():
     response = client.post("/cosmenet/scanproduct/v2/onnx", json=JsonUtils.get_json_feature_extract_model())
     assert response.status_code == 401
+    assert response.json()['detail'] == "Bearer token missing or unknown"
 
 if __name__ == "__main__":
     test_feature_extract_success()

@@ -1,7 +1,8 @@
 from pathlib import Path
 from PIL import Image
-import logging, os
+import logging, os, requests, validators
 import torch
+from io import BytesIO
 env = os.environ
 
 # Original model
@@ -67,8 +68,11 @@ else:
     feature_extractor = None
 
 # function
-def extract_image(img):
-    img = Image.open(img).convert('RGB')
+def extract_image(img_path):
+    if validators.url(img_path):
+        img = Image.open(requests.get(img_path, stream=True).raw).convert('RGB')
+    else:
+        img = Image.open(img_path).convert('RGB')
     features = feature_extractor.extract(img)
     return features
 

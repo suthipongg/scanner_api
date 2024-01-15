@@ -24,7 +24,7 @@ if int(env["LOGGING"]):
 app.include_router(extract_routes.router)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", 
+    uvicorn.run("app:app", 
                 host=env["HOST"], 
                 port=int(env["PORT"]), 
                 log_level="info", 

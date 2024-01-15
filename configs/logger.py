@@ -2,6 +2,13 @@ from datetime import datetime
 import os, logging
 from logging.handlers import TimedRotatingFileHandler
 
+# Disable uvicorn access logger
+uvicorn_access = logging.getLogger("uvicorn.access")
+uvicorn_access.disabled = False
+
+logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.getLevelName(logging.DEBUG))
+
 # datetime object containing current date and time
 now = datetime.now()
 dt_string = now.strftime("%d-%m-%Y")

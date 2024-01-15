@@ -4,9 +4,9 @@ from configs.security import UnauthorizedMessage, get_token
 from controllers.feature_extract import extract_image
 import sys, os
 
-router = APIRouter()
+extract_route = APIRouter()
 
-@router.post(
+@extract_route.post(
     "/cosmenet/scanproduct/v2/onnx", 
     tags=['scan_product'],
     responses={status.HTTP_401_UNAUTHORIZED: dict(model=UnauthorizedMessage)},

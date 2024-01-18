@@ -9,8 +9,10 @@ load_dotenv('configs/.env')
 env = os.environ
 
 from configs.middleware import log_request_middleware
-from configs.logger import configure_logging
+from configs.logger import configure_logging, logger
 from routes.extract_routes import extract_route
+
+logger.info('::: START PROJECT API FEATURE EXTRACTOR ::: ')
 
 ALLOWED_ORIGINS = ['*']
 

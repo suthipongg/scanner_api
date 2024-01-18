@@ -2,16 +2,12 @@ from datetime import datetime
 import os, logging
 from logging.handlers import TimedRotatingFileHandler
 
-# Disable uvicorn access logger
-uvicorn_access = logging.getLogger("uvicorn.access")
-uvicorn_access.disabled = False
-
-logger = logging.getLogger("uvicorn")
-logger.setLevel(logging.getLevelName(logging.DEBUG))
+logger = logging.getLogger('uvicorn')
+logger.setLevel(logging.getLevelName(logging.INFO))
 
 # datetime object containing current date and time
 now = datetime.now()
-dt_string = now.strftime("%d-%m-%Y")
+dt_string = now.strftime("%Y-%m-%d")
 
 if not os.path.exists('Logs'):
     try:
@@ -21,10 +17,8 @@ if not os.path.exists('Logs'):
 
 def configure_logging():
     # register root logging
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - module:%(module)s - log_line:%(lineno)d - %(message)s")
     handler = TimedRotatingFileHandler('Logs/' + dt_string + '.log', when="midnight", interval=1, encoding='utf8')
-    handler.suffix = "%d-%m-%Y"
+    handler.suffix = "%Y-%m-%d"
     handler.setFormatter(formatter)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
     logger.addHandler(handler)

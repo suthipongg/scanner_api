@@ -1,15 +1,7 @@
-import http
-import time
-from datetime import datetime  # Import datetime module
-
 from fastapi import Request
+import http, time
 
 from configs.logger import logger
-
-# ANSI escape codes for color formatting
-GREEN = '\033[92m'
-RED = '\033[91m'
-RESET = '\033[0m'
 
 async def log_request_middleware(request: Request, call_next):
     """
@@ -27,19 +19,10 @@ async def log_request_middleware(request: Request, call_next):
     port = getattr(getattr(request, "client", None), "port", None)
     try:
         status_phrase = http.HTTPStatus(response.status_code).phrase
-        if 200 <= response.status_code < 300:
-            # Use green color for successful responses
-            status_phrase = f'{GREEN}{status_phrase}{RESET}'
-        else:
-            # Use red color for error responses
-            status_phrase = f'{RED}{status_phrase}{RESET}'
     except ValueError:
         status_phrase = ""
 
-    # Get the current date and time in ISO format
-    current_datetime = datetime.now().isoformat()
-
     # Log the request with date and time
-    logger.info(f'{current_datetime} - {host}:{port} - "{request.method} {url}" {response.status_code} {status_phrase} {formatted_process_time}ms')
+    logger.info(f'{host}:{port} - "{request.method} {url}" {response.status_code} {status_phrase} {formatted_process_time}ms')
 
     return response

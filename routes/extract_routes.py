@@ -25,7 +25,7 @@ async def extract_feature(
         if validators.url(body['image_path']):
             response = requests.get(body['image_path'], stream=True)
             if response.headers["Content-type"] not in IMAGE_FORMATS:
-                logger.error(f'image_path: {body["image_path"]}')
+                logger.error(f'image_link: {body["image_path"]}')
                 raise HTTPException(status_code=404, detail="Link image not in image format.")
             else:
                 logger.info(f'computing image link: {body["image_path"]}')

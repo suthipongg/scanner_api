@@ -1,8 +1,7 @@
 from pathlib import Path
 from PIL import Image
-import logging, os, requests, validators
+import logging, os
 import torch
-from io import BytesIO
 env = os.environ
 
 # Original model
@@ -66,15 +65,6 @@ elif int(env["IS_ORIGINAL_MODEL"]):
 else:
     logging.info('No model is loaded')
     feature_extractor = None
-
-# function
-def extract_image(img_path):
-    if validators.url(img_path):
-        img = Image.open(requests.get(img_path, stream=True).raw).convert('RGB')
-    else:
-        img = Image.open(img_path).convert('RGB')
-    features = feature_extractor.extract(img)
-    return features
 
 if __name__ == '__main__':
     feature_extractor = FeatureExtractor()

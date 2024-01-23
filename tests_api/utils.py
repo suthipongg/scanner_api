@@ -19,5 +19,5 @@ class JsonUtils:
     @staticmethod
     def get_json_feature_extract_model():
         return {
-            "fullPath": str(TEST_DIR / "test.jpeg")
+            "image_path": str(TEST_DIR / "test.jpeg")
         }

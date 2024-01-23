@@ -1,9 +1,12 @@
-from models.fullpath_model import FullPathModel
+from models.extract_model import ExtractModel
 from fastapi import APIRouter, HTTPException, Depends, status
 from configs.security import UnauthorizedMessage, get_token
 from configs.logger import logger
-from controllers.feature_extract import extract_image
-import sys, os
+from controllers.feature_extract import feature_extractor
+from routes.utils import IMAGE_FORMATS
+
+import sys, os, validators, requests
+from PIL import Image
 
 extract_route = APIRouter()
 
@@ -14,16 +17,33 @@ extract_route = APIRouter()
     status_code=status.HTTP_200_OK
     )
 async def extract_feature(
-    body:FullPathModel,
+    body:ExtractModel,
     token_auth: str = Depends(get_token)
     ):
     try:
-        features = extract_image(body.fullPath)
+        body = body.model_dump()
+        if validators.url(body['image_path']):
+            response = requests.get(body['image_path'], stream=True)
+            if response.headers["Content-type"] not in IMAGE_FORMATS:
+                logger.error(f'Link image not in image format. image_path: {body["image_path"]}')
+                raise HTTPException(status_code=404, detail="Link image not in image format.")
+            else:
+                logger.info(f'computing image link: {body["image_path"]}')
+                img = Image.open(response.raw).convert('RGB')
+        elif not os.path.exists(body['image_path']):
+            logger.error(f'Image Not Found. image_path: {body["image_path"]}')
+            raise HTTPException(status_code=404, detail="Image Not Found.")
+        else:
+            logger.info(f'computing image path: {body["image_path"]}')
+            img = Image.open(body['image_path']).convert('RGB')
+            
+        features = feature_extractor.extract(img)
         return {
             "message": "success",
             "embedded_feature": features,
         }
     except HTTPException as http_exception:
+        logger.error(http_exception.detail)
         raise http_exception
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()

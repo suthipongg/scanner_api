@@ -7,6 +7,7 @@ from routes.utils import IMAGE_FORMATS
 
 import sys, os, validators, requests
 from PIL import Image
+from io import BytesIO
 
 extract_route = APIRouter()
 
@@ -24,12 +25,8 @@ async def extract_feature(
         body = body.model_dump()
         if validators.url(body['image_path']):
             response = requests.get(body['image_path'], stream=True)
-            if response.headers["Content-type"] not in IMAGE_FORMATS:
-                logger.error(f'image_link: {body["image_path"]}')
-                raise HTTPException(status_code=404, detail="Link image not in image format.")
-            else:
-                logger.info(f'computing image link: {body["image_path"]}')
-                img = Image.open(response.raw).convert('RGB')
+            logger.info(f'computing image link: {body["image_path"]}')
+            img = Image.open(BytesIO(response.content)).convert('RGB')
         elif not os.path.exists(body['image_path']):
             logger.error(f'image_path: {body["image_path"]}')
             raise HTTPException(status_code=404, detail="Image Not Found.")

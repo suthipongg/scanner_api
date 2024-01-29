@@ -20,21 +20,22 @@ class TimedRotatingFileHandlerCustom(TimedRotatingFileHandler):
         super().__init__(filename, when, interval, backupCount, encoding, delay, utc, atTime)
     
     def rotation_filename(self, default_name):
-        prefix = default_name[len(self.baseFilename + "."):]
+        suffix = default_name[len(self.baseFilename + "."):]
         dirName, baseName = os.path.split(self.baseFilename)
-        new_name = prefix + "_" + baseName
+        filename, file_extension = os.path.splitext(baseName)
+        new_name = filename + "_" + suffix + file_extension
         return os.path.join(dirName, new_name)
     
     def getFilesToDelete(self):
         dirName, baseName = os.path.split(self.baseFilename)
         fileNames = os.listdir(dirName)
         result = []
-        suffix = '_' + baseName
-        slen = len(suffix)
+        prefix = baseName + '_'
+        slen = len(prefix)
         for fileName in fileNames:
-            if fileName[-slen:] == suffix:
-                prefix = fileName[:-slen]
-                if self.extMatch.match(prefix):
+            if fileName[:slen] == prefix:
+                suffix = fileName[slen:].split('.')[0]
+                if self.extMatch.match(suffix):
                     result.append(os.path.join(dirName, fileName))
         if len(result) < self.backupCount:
             result = []

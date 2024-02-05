@@ -10,9 +10,6 @@ env = os.environ
 
 from configs.middleware import log_request_middleware
 from configs.logger import configure_logging, logger
-from routes.extract_routes import extract_route
-
-logger.info('::: START PROJECT API FEATURE EXTRACTOR ::: ')
 
 ALLOWED_ORIGINS = ['*']
 
@@ -32,7 +29,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers  
 )  
 
-
 app.middleware("http")(log_request_middleware)
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -45,7 +41,10 @@ async def add_process_time_header(request: Request, call_next):
 if int(env["LOGGING"]):
     configure_logging()
     
+from routes.extract_routes import extract_route
 app.include_router(extract_route)
+
+logger.info('::: START PROJECT API FEATURE EXTRACTOR ::: ')
 
 if __name__ == "__main__":
     uvicorn.run("app:app", 

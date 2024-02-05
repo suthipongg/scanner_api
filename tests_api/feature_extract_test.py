@@ -19,6 +19,11 @@ def test_feature_extract_url():
     assert response.json()['message'] == 'success'
     assert response.status_code == 200
 
+def test_feature_extract_url_not_found():
+    response = client.post("/cosmenet/scanproduct/v2/onnx", json={"image_path": "https://www.google.com/s"}, headers=JsonUtils.header)
+    assert response.json()['detail'] == 'Link not found.'
+    assert response.status_code == 404
+
 def test_feature_extract_not_found():
     response = client.post("/cosmenet/scanproduct/v2/onnx", json={"image_path": "tests/abc.jpg"}, headers=JsonUtils.header)
     assert response.json()['detail'] == "Image Not Found."
@@ -26,7 +31,7 @@ def test_feature_extract_not_found():
     
 def test_feature_extract_bad_link():
     response = client.post("/cosmenet/scanproduct/v2/onnx", json={"image_path": "https://www.google.com"}, headers=JsonUtils.header)
-    assert response.json()['detail'] == "Link image not in image format."
+    assert response.json()['detail'] == "Image Link is not valid."
     assert response.status_code == 404
 
 def test_feature_extract_unauthorized():
@@ -36,4 +41,8 @@ def test_feature_extract_unauthorized():
 
 if __name__ == "__main__":
     test_feature_extract_success()
+    test_feature_extract_url()
     test_feature_extract_unauthorized()
+    test_feature_extract_url_not_found()
+    test_feature_extract_not_found()
+    test_feature_extract_bad_link()

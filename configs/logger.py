@@ -43,7 +43,7 @@ class TimedRotatingFileHandlerCustom(TimedRotatingFileHandler):
             result.sort()
             result = result[:len(result) - self.backupCount]
         return result
-
+    
 def configure_logging():
     # register root logging
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - module:%(module)s - log_line:%(lineno)d - %(message)s")

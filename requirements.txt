@@ -4,11 +4,11 @@ uvicorn
 python-dotenv
 numpy
 Pillow
-pyzbar
+starlette
 requests
 tensorflow
 onnxruntime
 torch
 transformers
-urllib3==1.26.14
+urllib3==1.26.18
 validators

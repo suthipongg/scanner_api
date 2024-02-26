@@ -11,6 +11,6 @@ class ExtractModel(BaseModel, ManageBody):
     class Config:
         json_schema_extra = {
             "example": {
-                "image_path": "https://uat-chat.cosmenet.in.th/1.jpeg"
+                "image_path": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
             }
         }

@@ -1,8 +1,16 @@
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
-import os, requests, validators
+import os, requests
 from configs.logger import logger
 from fastapi import HTTPException
+from urllib.parse import urlparse
+
+def is_valid_url(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
 def is_image_link(link_path):
     try:
@@ -20,7 +28,7 @@ def is_image_link(link_path):
         
 def receive_image(link_path):
     try:
-        if validators.url(link_path):
+        if is_valid_url(link_path):
             img = is_image_link(link_path)
         elif not os.path.exists(link_path):
             logger.error(f'image_path: {link_path}')

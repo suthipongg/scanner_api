@@ -36,6 +36,9 @@ def receive_image(link_path):
         else:
             logger.info(f'computing image path: {link_path}')
             img = Image.open(link_path).convert('RGB')
+        if img.size[0] > img.size[1]:
+            img = img.rotate(-90, expand=True)
+            logger.info(f'rotating image to {img.size}')
         return img
     except HTTPException as http_exception:
         logger.error(http_exception.detail)

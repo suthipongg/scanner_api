@@ -1,11 +1,12 @@
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError, ImageOps
 from io import BytesIO
 import os, requests
 from configs.logger import logger
 from fastapi import HTTPException
 from urllib.parse import urlparse
+from utils.schema import encode_url_filename
 
-def is_valid_url(url):
+def is_valid_url(url:str):
     try:
         result = urlparse(url)
         return all([result.scheme, result.netloc])
@@ -14,7 +15,7 @@ def is_valid_url(url):
 
 def is_image_link(link_path):
     try:
-        response = requests.get(link_path, stream=True)
+        response = requests.get(encode_url_filename(link_path), stream=True)
         if response.status_code != 200:
             logger.error(f'image_path: {link_path}')
             raise HTTPException(status_code=404, detail="Link not found.")
@@ -36,6 +37,7 @@ def receive_image(link_path):
         else:
             logger.info(f'computing image path: {link_path}')
             img = Image.open(link_path).convert('RGB')
+        img = ImageOps.exif_transpose(img)
         if img.size[0] > img.size[1]:
             img = img.rotate(-90, expand=True)
             logger.info(f'rotating image to {img.size}')
